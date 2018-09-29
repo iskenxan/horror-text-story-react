@@ -1,12 +1,14 @@
+import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import SignIn from './scenes/signin';
 
-
-export default Routes = () =>(
+const Routes = () =>(
   <Router>
     <Switch>
-      <Route>
-        
-      </Route>
+      <Route path="/" component={SignIn} />
     </Switch>
   </Router>
 );
+
+
+export default Routes;
