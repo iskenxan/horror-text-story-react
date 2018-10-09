@@ -10,6 +10,9 @@ import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import { loginAction } from "../actions/user/login";
 import { signupAction } from "../actions/user/signup";
+import { Redirect, withRouter } from 'react-router-dom';
+import SnackBar from '@material-ui/core/Snackbar';
+
 
 const styles = theme => ({
   root: {
@@ -38,14 +41,28 @@ class SignIn extends Component {
       value: 0,
       username: '',
       password: '',
-      repeatPassword: ''
+      repeatPassword: '',
+      snackBarOpen: false,
+    }
+  }
+
+  componentWillReceiveProps(newProps) {
+    console.log(newProps.user);
+    if (newProps.user.authError) {
+      this.setState({
+        username: '',
+        password: '',
+        repeatPassword: '',
+        snackBarOpen: true
+      })
     }
   }
 
 
+
   onSignupClick = () => {
-    const { username, password } = this.state;
-    this.props.signupAction(username, password);
+    const { username, password, repeatPassword } = this.state;
+    this.props.signupAction(username, password, repeatPassword);
   };
 
   onLoginClick = () => {
@@ -176,13 +193,40 @@ class SignIn extends Component {
   };
 
 
+  handleSnackBarClose = () => {
+    this.setState({snackBarOpen: false})
+  };
+
+
+  getSnackBar =() => {
+    const { authError } = this.props.user;
+    return (
+      <SnackBar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        open={this.state.snackBarOpen}
+        message={authError}
+        onClose={this.handleSnackBarClose}
+      />
+    )
+  };
+
+
   render() {
+    if (this.props.user.token) {
+      return(
+        <Redirect to="/me" />
+        )
+    }
     const { classes } = this.props;
     return (
       <Grid container className={classes.root} justify={"center"} alignItems={"center"}>
           <Grid item  xs={6}>
             {this.getForm(classes)}
           </Grid>
+        {this.getSnackBar()}
       </Grid>
     );
   }
@@ -193,4 +237,4 @@ const mapStateToProps = (state) => ({
   user: state.user
 });
 
-export default connect(mapStateToProps, { loginAction, signupAction })(withStyles(styles)(SignIn));
+export default withRouter(connect(mapStateToProps, { loginAction, signupAction })(withStyles(styles)(SignIn)));

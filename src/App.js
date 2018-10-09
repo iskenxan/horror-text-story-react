@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Routes from './routes';
 
@@ -8,10 +10,15 @@ class App extends Component {
     return(
       <div id={"app"}>
         <CssBaseline />
-        <Routes/>
+        <Routes
+          token={this.props.user.token}/>
       </div>
       )
   }
 }
 
-export default App;
+const mapStateToProps= (state) => ({
+  user: state.user
+});
+
+export default connect(mapStateToProps)(App);

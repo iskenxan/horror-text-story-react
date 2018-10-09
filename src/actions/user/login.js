@@ -1,9 +1,9 @@
 import { login } from '../../api/user';
 
 
-const LOGIN_LOADING = 'login_loading';
-const LOGIN_SUCCESS = 'login_success';
-const LOGIN_ERROR = 'login_error';
+export const LOGIN_LOADING = 'login_loading';
+export const LOGIN_SUCCESS = 'login_success';
+export const LOGIN_ERROR = 'login_error';
 
 
 const loginLoading = () => ({
@@ -25,10 +25,10 @@ const loginError = (error) => ({
 
 export const loginAction = (username, password) => (dispatch => {
   dispatch(loginLoading());
-  login(username, password).then(user =>{
-    dispatch(loginSuccess(user));
-  }).catch(error =>{
-    dispatch(loginError(error));
+  login(username, password).then(response => {
+    dispatch(loginSuccess(response.data.result));
+  }).catch(error => {
+    dispatch(loginError(error.response.data.error.message));
   });
 });
 

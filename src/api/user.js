@@ -3,7 +3,16 @@ import axios from 'axios';
 const apiBaseUrl = 'http://localhost:3001';
 
 const loginUrl = `${apiBaseUrl}/user/login`;
+const logoutUrl = `${apiBaseUrl}/user/logout`;
 const signUpUrl = `${apiBaseUrl}/user/signup`;
+
+
+export const logout = (username, token) => {
+  return axios.post(logoutUrl, {
+    username,
+    token
+  })
+};
 
 
 export const login = (username, password) => {
@@ -14,10 +23,11 @@ export const login = (username, password) => {
 };
 
 
-export const signUp = (username, password) => {
+export const signUp = (username, password, repeatPassword) => {
   return axios.post(signUpUrl, {
     username,
-    password
+    password,
+    repeatPassword
   })
 };
 

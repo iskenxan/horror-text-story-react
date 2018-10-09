@@ -1,8 +1,8 @@
 import { signUp } from "../../api/user";
 
-const SIGNUP_LOADING = 'signup_loading';
-const SIGNUP_SUCCESS = 'signup_success';
-const SIGNUP_ERROR = 'signup_error';
+export const SIGNUP_LOADING = 'signup_loading';
+export const SIGNUP_SUCCESS = 'signup_success';
+export const SIGNUP_ERROR = 'signup_error';
 
 
 const sigupLoading = () => ({
@@ -22,11 +22,11 @@ const signupError = (error) => ({
 });
 
 
-export const signupAction = (username, password) => (dispatch => {
+export const signupAction = (username, password, repeatPassword) => (dispatch => {
   dispatch(sigupLoading());
-  signUp(username, password).then(user =>{
-    dispatch(signupSuccess(user));
+  signUp(username, password, repeatPassword).then(response => {
+    dispatch(signupSuccess(response.data.result));
   }).catch(error =>{
-    dispatch(signupError(error));
+    dispatch(signupError(error.response.data.error.message));
   });
 });
