@@ -8,7 +8,7 @@ import TopUserInfo from './components/top-user-info';
 import Button from '@material-ui/core/Button';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import { logoutAction } from "../../actions/user/logout";
+import Navbar from '../../components/navbar';
 
 
 const styles = {
@@ -55,10 +55,8 @@ class MyProfile extends Component {
   };
 
 
-  onLogoutClick = () => {
-    const { username } = this.props.user.user;
-    const { token } = this.props.user;
-    this.props.logoutAction(username, token);
+  onAddStoryClick = () => {
+    this.props.history.push('/add-story');
   };
 
 
@@ -69,13 +67,10 @@ class MyProfile extends Component {
 
     return (
       <div className={fullWidth}>
+        <Navbar
+          title='My Profile'/>
         <Grid container
               justify={"center"}>
-          <Grid container justify={"flex-end"} className={buttonContainer}>
-            <Button color={"primary"} onClick={this.onLogoutClick}>
-              Logout
-            </Button>
-          </Grid>
           <Grid item xs={8} >
             <Paper  className={paper}>
               <TopUserInfo
@@ -87,7 +82,7 @@ class MyProfile extends Component {
               />
               <hr className={hr}/>
               <Grid item xs>
-                <Button variant={"contained"} color={"primary"}>
+                <Button variant={"contained"} color={"primary"} onClick={this.onAddStoryClick}>
                   Add Story
                 </Button>
               </Grid>
@@ -117,4 +112,4 @@ const mapStateToProps = (state) => ({
 });
 
 
-export default withRouter(connect(mapStateToProps, { logoutAction })(withStyles(styles)(MyProfile)));
+export default withRouter(connect(mapStateToProps)(withStyles(styles)(MyProfile)));

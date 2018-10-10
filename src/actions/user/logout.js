@@ -16,18 +16,12 @@ const logoutSuccess = () => ({
 });
 
 
-const logoutError = (error) => ({
-  type: LOGOUT_ERROR,
-  payload: error
-});
-
-
-export const logoutAction = (username, password) => (dispatch => {
+export const logoutAction = (token) => (dispatch => {
   dispatch(logoutLoading());
-  logout(username, password).then(() => {
+  logout(token).then(() => {
     dispatch(logoutSuccess());
-  }).catch(error => {
-    dispatch(logoutError(error.response.data.error.message));
+  }).catch(() => {
+    dispatch(logoutSuccess());
   });
 });
 

@@ -7,9 +7,8 @@ const logoutUrl = `${apiBaseUrl}/user/logout`;
 const signUpUrl = `${apiBaseUrl}/user/signup`;
 
 
-export const logout = (username, token) => {
+export const logout = (token) => {
   return axios.post(logoutUrl, {
-    username,
     token
   })
 };
