@@ -4,10 +4,23 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import { CirclePicker } from 'react-color';
-import Popper from '@material-ui/core/Popper';
+import SnackBar from '@material-ui/core/Snackbar';
+import TopButtons from './components/top-buttons';
+import AddCharacter from './components/add-character';
+import {
+  addCharacterAction,
+  removeCharacterAction,
+  addDialogMessageAction,
+  removeDialogMessageAction,
+  cancelStory,
+  saveTitleAction,
+  saveDraftAction
+} from "../../actions/user/new-post";
+import CharacterList from './components/character-list';
+import ConversationList from './components/conversation-list';
+import ConversationInput from './components/conversation-input';
+import { Redirect } from 'react-router-dom';
 
 
 const styles = {
@@ -23,107 +36,140 @@ const styles = {
   },
   paper: {
     marginTop: 30,
-    paddingTop: 50,
+    marginBottom: 50,
     paddingBottom: 50,
     paddingLeft: 30,
     paddingRight: 30
+  },
+  conversationContainer: {
+    marginTop:40
   }
-
 };
 
-class AddStory extends Component {
 
+class AddStory extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      colorPickerOpen: false,
-      pickerAnchor: null,
+      redirected: false,
+      redirectMessage: '',
+      title:'',
+      snackBarOpen: false
     }
   }
 
 
-  renderTopButtons = ({topButton, topButtonsContainer}) => {
-    return (
-      <Grid container className={topButtonsContainer}  justify={"flex-start"}>
-        <Button className={topButton} color={"secondary"}>
-          Cancel
-        </Button>
-        <Button className={topButton} color={"link"}>
-          Save Draft
-        </Button>
-        <Button className={topButton} variant={"contained"} color={"primary"}>
-          Publish
-        </Button>
-      </Grid>
-    )
+  componentWillReceiveProps(nextProps) {
+    if (this.props.error !== nextProps.error) {
+      this.setState({ snackBarOpen: true });
+    }
+    console.log(nextProps.drafts, this.props.drafts);
+    if (this.props.drafts.length < nextProps.drafts.length) {
+      this.setState({ redirected: true, redirectMessage: 'Draft was saved.' })
+    }
+    if (nextProps.story && nextProps.story.title) {
+      this.setState({ title: nextProps.story.title })
+    }
+  }
+
+
+  onTitleChange = (event) => {
+    this.setState({ title: event.target.value});
   };
 
 
-  openColorPicker = (event) => {
-    const { currentTarget } = event;
-    this.setState({colorPickerOpen: !this.state.colorPickerOpen, pickerAnchor: currentTarget});
+  onAddCharacter = (name, color, isMain) => {
+    this.props.addCharacterAction(name, color, isMain);
   };
 
 
-  renderColorPicker = () => (
-    <Popper anchorEl={this.state.pickerAnchor} open={this.state.colorPickerOpen}>
-      <Paper style={{padding:10}}>
-        <CirclePicker/>
-      </Paper>
-    </Popper>
-  );
+  onRemoveCharacter = (name) => {
+    this.props.removeCharacterAction(name);
+  };
 
-  renderAddCharacter = () => (
-    <Grid container
-          alignItems={"center"}>
-      <Grid
-        item
-        xs={8}>
-        <TextField
-          margin={"normal"}
-          label="Add Character"
-          fullWidth
-          variant={"filled"}/>
-      </Grid>
-      <Grid
-        item
-        xs>
-        <Grid container
-              justify={"center"}>
-          <Button onClick={this.openColorPicker}>
-            Pick Color
-          </Button>
-        </Grid>
-      </Grid>
-      <Button variant={"contained"} color={"primary"}>
-        Add
-      </Button>
-      {this.renderColorPicker()}
-    </Grid>
-  );
+
+  onNewMessage = (name, text) => {
+    const { dialogCount } = this.props.story;
+    this.props.addDialogMessageAction({
+      id: dialogCount,
+      name,
+      text
+    })
+  };
+
+
+  onCancel = () => {
+    this.props.cancelStory();
+    this.setState({ redirected: true });
+  };
+
+
+  saveDraft = () => {
+    const { token, story } = this.props;
+    this.props.saveTitleAction(this.state.title);
+    this.props.saveDraftAction({ ...story, title: this.state.title }, token);
+  };
 
 
   render() {
-    const { root, paper}  = this.props.classes;
+    const { root, paper, conversationContainer } = this.props.classes;
+    const { redirected, redirectMessage, title } = this.state;
+
+    const { characters, dialog } = this.props.story;
+    const { error } = this.props;
+
     return (
       <div className={root}>
+        { redirected && <Redirect to={{
+          pathname: "/me",
+          state: { message: redirectMessage },
+          }}/>
+        }
         <Grid
           container
           justify={"center"}>
           <Grid
             item
-            xs={10}>
-            {this.renderTopButtons(this.props.classes)}
+            xs={8}>
+            <TopButtons
+              classes={this.props.classes}
+              onCancel={this.onCancel}
+              onSaveDraft={this.saveDraft}/>
             <Paper className={paper}>
               <TextField
                 label="Title"
                 fullWidth
                 margin={"normal"}
-                variant={"filled"}/>
-              { this.renderAddCharacter() }
+                value={title}
+                onChange={this.onTitleChange}
+                />
+              <AddCharacter
+                onAddCharacter={this.onAddCharacter}
+                />
+              <CharacterList
+                onCharacterDelete={this.onRemoveCharacter}
+                characters={characters}/>
+              <Grid item xs className={conversationContainer}>
+                <ConversationList
+                  dialog={dialog}
+                  characters={characters}
+                  />
+                <ConversationInput
+                  characters = {characters}
+                  onMessageAdded={this.onNewMessage}
+                  />
+              </Grid>
             </Paper>
           </Grid>
         </Grid>
+        <SnackBar
+          open={this.state.snackBarOpen}
+          message={error}
+          onClose={() => this.setState({ snackBarOpen: false })}
+          anchorOrigin={{
+            vertical:'bottom',
+            horizontal: 'center'
+          }}/>
       </div>
     )
   }
@@ -132,7 +178,21 @@ class AddStory extends Component {
 
 const mapStateToProps = (state) => ({
   token: state.user.token,
+  story: state.user.newStory,
+  error: state.user.requestError,
+  drafts: state.user.stories.drafts,
 });
 
 
-export default withRouter(connect(mapStateToProps)(withStyles(styles)(AddStory)));
+const actions = {
+  addCharacterAction,
+  removeCharacterAction,
+  addDialogMessageAction,
+  removeDialogMessageAction,
+  cancelStory,
+  saveDraftAction,
+  saveTitleAction
+};
+
+
+export default withRouter(connect(mapStateToProps, actions)(withStyles(styles)(AddStory)));

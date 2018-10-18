@@ -9,6 +9,11 @@ import Button from '@material-ui/core/Button';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Navbar from '../../components/navbar';
+import SnackBar from '@material-ui/core/Snackbar';
+import Draft from './components/draft-item';
+import {
+  getDraftAction
+} from "../../actions/user/new-post";
 
 
 const styles = {
@@ -44,8 +49,23 @@ const styles = {
 class MyProfile extends Component {
   constructor(props) {
     super(props);
+    let snackBarOpen = false;
+    let snackBarMessage = '';
     this.state = {
-      tabsValue: 0
+      tabsValue: 0,
+      snackBarOpen,
+      snackBarMessage
+    }
+  }
+
+
+  componentWillMount() {
+    if (this.props.location.state && this.props.location.state.message) {
+      this.setState({ snackBarOpen: true, snackBarMessage: this.props.location.state.message })
+      this.props.history.replace({
+        pathname: this.props.location.pathname,
+        state: {}
+      });
     }
   }
 
@@ -60,11 +80,35 @@ class MyProfile extends Component {
   };
 
 
-  render() {
-    const { fullWidth, paper, hr, tabContainer, buttonContainer } = this.props.classes;
-    const { username, postRefs, followers, following } = this.props.user.user;
-    const { tabsValue } = this.state;
+  onDraftEdit = (id) => {
+    this.props.getDraftAction(id, this.props.user.token);
+    this.props.history.push('/add-story');
+  };
 
+
+  renderDrafts = () => {
+    const { drafts } = this.props.user.stories;
+    if (drafts && drafts.length > 0) {
+      return (
+        <Grid item xs>
+          { drafts.map(draft =>
+            <Draft
+              onEdit={this.onDraftEdit}
+              id={draft.id}
+              title={draft.title}/>
+            )
+          }
+        </Grid>
+      )
+    }
+    return <div>No drafts</div>
+  };
+
+
+  render() {
+    const { fullWidth, paper, hr, tabContainer } = this.props.classes;
+    const { username, postRefs, followers, following } = this.props.user.user;
+    const { tabsValue, snackBarOpen, snackBarMessage } = this.state;
     return (
       <div className={fullWidth}>
         <Navbar
@@ -98,9 +142,14 @@ class MyProfile extends Component {
                   <Tab label={"Drafted"} />
                 </Tabs>
               </Grid>
+              {tabsValue === 1 && this.renderDrafts()}
             </Paper>
           </Grid>
         </Grid>
+          <SnackBar
+            open={snackBarOpen}
+            message={snackBarMessage}
+            onClose={() => this.setState({ snackBarOpen: false })}/>
       </div>
     );
   }
@@ -112,4 +161,9 @@ const mapStateToProps = (state) => ({
 });
 
 
-export default withRouter(connect(mapStateToProps)(withStyles(styles)(MyProfile)));
+const actions = {
+  getDraftAction,
+};
+
+
+export default withRouter(connect(mapStateToProps, actions)(withStyles(styles)(MyProfile)));

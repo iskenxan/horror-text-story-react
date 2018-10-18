@@ -10,6 +10,8 @@ import './index.css';
 import App from './App';
 import  reducer from './reducers';
 import registerServiceWorker from './registerServiceWorker';
+import { ThemeProvider } from '@livechat/ui-kit';
+
 
 const persistConfig = {
   key: 'root',
@@ -27,7 +29,9 @@ const root = document.getElementById('root');
 ReactDOM.render(
   <Provider store={store}>
     <PersistGate persistor={persistor}>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </PersistGate>
   </Provider>
   , root);

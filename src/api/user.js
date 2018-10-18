@@ -5,6 +5,8 @@ const apiBaseUrl = 'http://localhost:3001';
 const loginUrl = `${apiBaseUrl}/user/login`;
 const logoutUrl = `${apiBaseUrl}/user/logout`;
 const signUpUrl = `${apiBaseUrl}/user/signup`;
+const saveDraftUrl = `${apiBaseUrl}/user/posts/draft/save`;
+const getDraftUrl = `${apiBaseUrl}/user/posts/draft/get`;
 
 
 export const logout = (token) => {
@@ -27,7 +29,23 @@ export const signUp = (username, password, repeatPassword) => {
     username,
     password,
     repeatPassword
-  })
+  });
+};
+
+
+export const saveDraft = (newStory, token) => {
+  return axios.post(saveDraftUrl, {
+    token,
+    draft: newStory
+  });
+};
+
+
+export const getDraft = (id, token) => {
+  return axios.post(getDraftUrl, {
+    token,
+    id
+  });
 };
 
 

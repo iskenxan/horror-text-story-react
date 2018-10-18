@@ -28,7 +28,8 @@ export const loginAction = (username, password) => (dispatch => {
   login(username, password).then(response => {
     dispatch(loginSuccess(response.data.result));
   }).catch(error => {
-    dispatch(loginError(error.response.data.error.message));
+    dispatch(loginError(error.response && error.response.data
+      ? error.response.data.error.message : 'Connection problems'));
   });
 });
 
