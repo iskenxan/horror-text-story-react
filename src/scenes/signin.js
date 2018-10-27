@@ -10,11 +10,12 @@ import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import { loginAction } from "../actions/user/login";
 import { signupAction } from "../actions/user/signup";
+import { resetRequestStateAction } from "../actions/request-status-actions";
 import { Redirect, withRouter } from 'react-router-dom';
 import SnackBar from '@material-ui/core/Snackbar';
 
 
-const styles = theme => ({
+const styles = () => ({
   root: {
     height: '100%'
   },
@@ -48,7 +49,7 @@ class SignIn extends Component {
 
   componentWillReceiveProps(newProps) {
     console.log(newProps.user);
-    if (newProps.user.authError) {
+    if (newProps.status.error) {
       this.setState({
         username: '',
         password: '',
@@ -194,12 +195,13 @@ class SignIn extends Component {
 
 
   handleSnackBarClose = () => {
-    this.setState({snackBarOpen: false})
+    this.setState({snackBarOpen: false});
+    this.props.resetRequestStateAction();
   };
 
 
   getSnackBar =() => {
-    const { authError } = this.props.user;
+    const { errorMessage } = this.props.status;
     return (
       <SnackBar
         anchorOrigin={{
@@ -207,7 +209,7 @@ class SignIn extends Component {
           horizontal: 'center'
         }}
         open={this.state.snackBarOpen}
-        message={authError}
+        message={errorMessage}
         onClose={this.handleSnackBarClose}
       />
     )
@@ -234,7 +236,8 @@ class SignIn extends Component {
 
 
 const mapStateToProps = (state) => ({
-  user: state.user
+  user: state.user,
+  status: state.requestStatus
 });
 
-export default withRouter(connect(mapStateToProps, { loginAction, signupAction })(withStyles(styles)(SignIn)));
+export default withRouter(connect(mapStateToProps, { loginAction, signupAction, resetRequestStateAction })(withStyles(styles)(SignIn)));

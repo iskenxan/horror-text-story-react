@@ -1,14 +1,11 @@
 import _ from 'lodash';
 import {
-  LOGIN_ERROR,
   LOGIN_SUCCESS
 } from '../actions/user/login';
 import {
-  SIGNUP_ERROR,
   SIGNUP_SUCCESS
 } from '../actions/user/signup';
 import {
-  LOGOUT_ERROR,
   LOGOUT_SUCCESS
 } from '../actions/user/logout';
 import {
@@ -17,10 +14,10 @@ import {
   ADD_DIALOG,
   CANCEL_STORY,
   SAVE_TITLE,
-  SAVE_DRAFT_ERROR,
   SAVE_DRAFT_SUCCESS,
-  GET_DRAFT_ERROR,
   GET_DRAFT_SUCCESS,
+  UPDATE_DRAFT_SUCCESS, DELETE_DRAFT_SUCCESS,
+  PUBLISH_DRAFT_SUCCESS,
 } from "../actions/user/new-post";
 
 const emptyStory = {
@@ -28,6 +25,7 @@ const emptyStory = {
   dialog: {},
   dialogCount: 0,
   title: null,
+  id: undefined
 };
 
 
@@ -36,22 +34,24 @@ const initialState = {
   token: null,
   newStory: { ...emptyStory },
   stories: {
-    published: [],
-    drafts: []
+    published: {},
+    drafts: {}
   }
 };
 
 
 const UserReducer = (state = { ...initialState }, action) => {
   switch (action.type) {
-    case SIGNUP_ERROR:
-    case LOGIN_ERROR:
-      return { ...state, authError: action.payload };
     case SIGNUP_SUCCESS:
-    case LOGIN_SUCCESS:
-      return { ...state, ...action.payload, authError: null };
-    case LOGOUT_ERROR:
-      return { ...state, logoutError: action.payload };
+    case LOGIN_SUCCESS: {
+      let stateClone = {...state, ...action.payload, logoutError: null };
+      stateClone.stories.drafts = action.payload.user.draftRefs;
+      stateClone.stories.published = action.payload.user.publishedRefs;
+      delete stateClone.user.draftRefs;
+      delete stateClone.user.publishedRefs;
+
+      return { ...stateClone };
+    }
     case LOGOUT_SUCCESS:
       return { ...initialState };
     case ADD_CHARACTER:
@@ -80,24 +80,29 @@ const UserReducer = (state = { ...initialState }, action) => {
       newStoryObj.title = action.payload;
       return { ...state, newStory: { ...newStoryObj } }
     }
+    case UPDATE_DRAFT_SUCCESS:
     case SAVE_DRAFT_SUCCESS: {
       const storiesClone = _.cloneDeep(state.stories);
       const { newStory } = state;
-      storiesClone.drafts.push({
-        title: newStory.title,
-        id: action.payload
-      });
-
+      storiesClone.drafts[action.payload] = { title: newStory.title } ;
       return { ...state, stories: { ...storiesClone }, newStory: { ...emptyStory } };
-    }
-    case GET_DRAFT_ERROR:
-    case SAVE_DRAFT_ERROR: {
-      return { ...state, requestError: action.payload };
     }
     case GET_DRAFT_SUCCESS: {
      return { ...state, newStory: action.payload };
     }
-
+    case DELETE_DRAFT_SUCCESS: {
+      const storiesClone = _.cloneDeep(state.stories);
+      delete storiesClone.drafts[action.payload];
+      return { ...state, stories: { ...storiesClone }, newStory: { ...emptyStory } };
+    }
+    case PUBLISH_DRAFT_SUCCESS: {
+      const storiesClone = _.cloneDeep(state.stories);
+      const { newStory } = state;
+      const { published, oldDraft } = action.payload;
+      storiesClone.published[published] = { title: newStory.title };
+      delete storiesClone.drafts[oldDraft];
+      return { ...state, stories: { ... storiesClone }, newStory: { ... emptyStory }}
+    }
     default:
       return state;
   }

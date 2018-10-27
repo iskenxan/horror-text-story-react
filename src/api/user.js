@@ -7,6 +7,9 @@ const logoutUrl = `${apiBaseUrl}/user/logout`;
 const signUpUrl = `${apiBaseUrl}/user/signup`;
 const saveDraftUrl = `${apiBaseUrl}/user/posts/draft/save`;
 const getDraftUrl = `${apiBaseUrl}/user/posts/draft/get`;
+const updateDraftUrl = `${apiBaseUrl}/user/posts/draft/update`;
+const deleteDraftUrl = `${apiBaseUrl}/user/posts/draft/delete`;
+const publishDraftUrl = `${apiBaseUrl}/user/posts/draft/publish`;
 
 
 export const logout = (token) => {
@@ -46,6 +49,30 @@ export const getDraft = (id, token) => {
     token,
     id
   });
+};
+
+
+export const updateDraft = (draft, token) => {
+  return axios.post(updateDraftUrl, {
+    token,
+    draft
+  });
+};
+
+
+export const deleteDraft = (id, token) => {
+  return axios.post(deleteDraftUrl, {
+    id,
+    token
+  })
+};
+
+
+export const publishDraft = (draft, token) => {
+  return axios.post(publishDraftUrl, {
+    draft,
+    token
+  })
 };
 
 

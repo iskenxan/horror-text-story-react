@@ -3,8 +3,9 @@ import _ from 'lodash';
 import { MessageList, Message, MessageText, MessageGroup, Bubble } from '@livechat/ui-kit'
 
 const rootListStyle = {
-    maxHeight: 300,
-    minHeight: 300,
+  maxHeight: 300,
+  minHeight: 300,
+  backgroundColor: '#F9F9F9'
 };
 
 
@@ -30,9 +31,11 @@ const renderMessages = (dialog, characters) => {
 const ConversationList = ({ dialog, characters }) => {
   return(
       <div style={rootListStyle}>
-        <MessageList active style={{ backgroundColor: '#F9F9F9', maxHeight: 300, minHeight: 300 }}>
-          {renderMessages(dialog, characters)}
-        </MessageList>
+        { dialog && !_.isEmpty(dialog) &&
+          <MessageList active style={{ backgroundColor: '#F9F9F9', maxHeight: 300, minHeight: 300 }}>
+            {renderMessages(dialog, characters)}
+          </MessageList>
+        }
       </div>
   )
 };

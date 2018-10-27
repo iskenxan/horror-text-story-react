@@ -15,8 +15,18 @@ import {
   removeDialogMessageAction,
   cancelStory,
   saveTitleAction,
-  saveDraftAction
+  saveDraftAction,
+  updateDraftAction,
+  deleteDraftAction,
+  publishDraftAction
 } from "../../actions/user/new-post";
+import {
+  SAVE_DRAFT_SUCCESS,
+  UPDATE_DRAFT_SUCCESS,
+  DELETE_DRAFT_SUCCESS,
+  PUBLISH_DRAFT_SUCCESS
+} from "../../actions/user/new-post";
+import { resetRequestStateAction } from "../../actions/request-status-actions";
 import CharacterList from './components/character-list';
 import ConversationList from './components/conversation-list';
 import ConversationInput from './components/conversation-input';
@@ -53,24 +63,45 @@ class AddStory extends Component {
     this.state = {
       redirected: false,
       redirectMessage: '',
-      title:'',
+      title: this.props.story.title || '',
       snackBarOpen: false
     }
   }
 
 
+  getRequestResultMessage = (type) => {
+    let redirectMessage = 'Draft was saved';
+    if (type === DELETE_DRAFT_SUCCESS) {
+      redirectMessage = 'Draft was deleted';
+    }
+    if (type === PUBLISH_DRAFT_SUCCESS) {
+      redirectMessage = 'Draft was published';
+    }
+
+    return redirectMessage;
+  };
+
+
   componentWillReceiveProps(nextProps) {
-    if (this.props.error !== nextProps.error) {
+    const { error, success, type } = nextProps.status;
+    if (nextProps){
+      console.log(nextProps.status);
+    }
+
+    if (error) {
       this.setState({ snackBarOpen: true });
     }
-    console.log(nextProps.drafts, this.props.drafts);
-    if (this.props.drafts.length < nextProps.drafts.length) {
-      this.setState({ redirected: true, redirectMessage: 'Draft was saved.' })
+
+    if (success && (type === SAVE_DRAFT_SUCCESS || type === UPDATE_DRAFT_SUCCESS
+      || type === DELETE_DRAFT_SUCCESS || type === PUBLISH_DRAFT_SUCCESS)) {
+      const redirectMessage = this.getRequestResultMessage(type);
+      this.setState({ redirected: true, redirectMessage });
+      this.props.resetRequestStateAction();
     }
     if (nextProps.story && nextProps.story.title) {
       this.setState({ title: nextProps.story.title })
     }
-  }
+  };
 
 
   onTitleChange = (event) => {
@@ -104,19 +135,40 @@ class AddStory extends Component {
   };
 
 
-  saveDraft = () => {
-    const { token, story } = this.props;
-    this.props.saveTitleAction(this.state.title);
-    this.props.saveDraftAction({ ...story, title: this.state.title }, token);
+  onDeleteDraft = () => {
+    const { token, story, deleteDraftAction } = this.props;
+    deleteDraftAction(story.id, token);
   };
 
+
+  saveDraft = () => {
+    const { token, story, updateDraftAction, saveDraftAction } = this.props;
+    this.props.saveTitleAction(this.state.title);
+    if (story.id) {
+      updateDraftAction({ ...story, title: this.state.title }, token)
+    } else {
+      saveDraftAction({ ...story, title: this.state.title }, token);
+    }
+  };
+
+
+  onPublish = () => {
+    const { token, story, publishDraftAction, saveTitleAction} = this.props;
+    saveTitleAction(this.state.title);
+    publishDraftAction({ ...story, title: this.state.title }, token);
+  };
+
+  onCloseSnackbar = () => {
+    this.setState({ snackBarOpen: false });
+    this.props.resetRequestStateAction();
+  };
 
   render() {
     const { root, paper, conversationContainer } = this.props.classes;
     const { redirected, redirectMessage, title } = this.state;
 
-    const { characters, dialog } = this.props.story;
-    const { error } = this.props;
+    const { characters, dialog, id } = this.props.story;
+    const { errorMessage: error } = this.props.status;
 
     return (
       <div className={root}>
@@ -133,8 +185,11 @@ class AddStory extends Component {
             xs={8}>
             <TopButtons
               classes={this.props.classes}
+              onPublish={this.onPublish}
               onCancel={this.onCancel}
-              onSaveDraft={this.saveDraft}/>
+              onSaveDraft={this.saveDraft}
+              showDelete={id}
+              onDelete={this.onDeleteDraft}/>
             <Paper className={paper}>
               <TextField
                 label="Title"
@@ -165,7 +220,7 @@ class AddStory extends Component {
         <SnackBar
           open={this.state.snackBarOpen}
           message={error}
-          onClose={() => this.setState({ snackBarOpen: false })}
+          onClose={this.onCloseSnackbar}
           anchorOrigin={{
             vertical:'bottom',
             horizontal: 'center'
@@ -179,8 +234,7 @@ class AddStory extends Component {
 const mapStateToProps = (state) => ({
   token: state.user.token,
   story: state.user.newStory,
-  error: state.user.requestError,
-  drafts: state.user.stories.drafts,
+  status: state.requestStatus,
 });
 
 
@@ -191,7 +245,11 @@ const actions = {
   removeDialogMessageAction,
   cancelStory,
   saveDraftAction,
-  saveTitleAction
+  saveTitleAction,
+  updateDraftAction,
+  resetRequestStateAction,
+  deleteDraftAction,
+  publishDraftAction,
 };
 
 

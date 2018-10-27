@@ -1,6 +1,7 @@
 import React, {Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+import _ from 'lodash';
 import Grid from '@material-ui/core/Grid';
 import { withStyles} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
@@ -11,6 +12,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Navbar from '../../components/navbar';
 import SnackBar from '@material-ui/core/Snackbar';
 import Draft from './components/draft-item';
+import Published from './components/published-item';
 import {
   getDraftAction
 } from "../../actions/user/new-post";
@@ -80,6 +82,31 @@ class MyProfile extends Component {
   };
 
 
+  onViewPublished = (id) => {
+    console.log(id);
+  };
+
+
+  renderPublished = () => {
+    const { published } = this.props.user.stories;
+    if (published && Object.keys(published).length > 0) {
+      return (
+        <Grid item xs>
+          { _.map(published, (value, key) =>
+            <Published
+              key={key}
+              onView={() => this.onViewPublished(key)}
+              id={key}
+              title={value.title}/>
+          )
+          }
+        </Grid>
+      )
+    }
+    return <div>No published</div>
+  };
+
+
   onDraftEdit = (id) => {
     this.props.getDraftAction(id, this.props.user.token);
     this.props.history.push('/add-story');
@@ -88,14 +115,15 @@ class MyProfile extends Component {
 
   renderDrafts = () => {
     const { drafts } = this.props.user.stories;
-    if (drafts && drafts.length > 0) {
+    if (drafts && Object.keys(drafts).length > 0) {
       return (
         <Grid item xs>
-          { drafts.map(draft =>
+          { _.map(drafts, (value, key) =>
             <Draft
-              onEdit={this.onDraftEdit}
-              id={draft.id}
-              title={draft.title}/>
+              key={key}
+              onEdit={() => this.onDraftEdit(key)}
+              id={key}
+              title={value.title}/>
             )
           }
         </Grid>
@@ -107,7 +135,7 @@ class MyProfile extends Component {
 
   render() {
     const { fullWidth, paper, hr, tabContainer } = this.props.classes;
-    const { username, postRefs, followers, following } = this.props.user.user;
+    const { username, publishedRefs, followers, following } = this.props.user.user;
     const { tabsValue, snackBarOpen, snackBarMessage } = this.state;
     return (
       <div className={fullWidth}>
@@ -119,9 +147,9 @@ class MyProfile extends Component {
             <Paper  className={paper}>
               <TopUserInfo
                 username={username}
-                posts={Object.keys(postRefs).length}
-                followers={Object.keys(followers).length}
-                following={Object.keys(following).length}
+                posts={publishedRefs ? Object.keys(publishedRefs).length : 0}
+                followers={followers ? Object.keys(followers).length : 0 }
+                following={following ? Object.keys(following).length : 0}
                 classes={this.props.classes}
               />
               <hr className={hr}/>
@@ -142,7 +170,8 @@ class MyProfile extends Component {
                   <Tab label={"Drafted"} />
                 </Tabs>
               </Grid>
-              {tabsValue === 1 && this.renderDrafts()}
+              { tabsValue === 0 && this.renderPublished() }
+              { tabsValue === 1 && this.renderDrafts() }
             </Paper>
           </Grid>
         </Grid>
