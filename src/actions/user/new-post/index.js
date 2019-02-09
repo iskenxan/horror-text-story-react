@@ -5,6 +5,8 @@ import
   updateDraft,
   deleteDraft,
   publishDraft,
+  getPublished,
+  unpublishPost
 } from '../../../api/user';
 import {
   getErrorResponse
@@ -35,6 +37,12 @@ export const DELETE_DRAFT_ERROR = 'delete_draft_error_action';
 
 export const PUBLISH_DRAFT_SUCCESS = 'publish_draft_success_action';
 export const PUBLISH_DRAFT_ERROR = 'publish_draft_error_action';
+
+export const GET_PUBLISHED_SUCCESS = 'get_published_success_action';
+export const GET_PUBLISHED_ERROR = 'get_published_error_action';
+
+export const UNPUBLISH_SUCCESS = `unpublish_post_success_action`;
+export const UNPUBLISH_ERROR = `unpublish_post_error_action`;
 
 
 export const addCharacterAction = (name, dialogColor, isMain) => {
@@ -142,6 +150,30 @@ const publishDraftError = (error) => ({
 });
 
 
+const getPublishedSuccess = (post) => ({
+  type: GET_PUBLISHED_SUCCESS,
+  payload: post
+});
+
+
+const getPublishedError = (error) => ({
+  type: PUBLISH_DRAFT_ERROR,
+  payload: error,
+});
+
+
+const unpublishPostSuccess = (postId) => ({
+  type: UNPUBLISH_SUCCESS,
+  payload: postId,
+});
+
+
+const unpublishPostError = (error) => ({
+  type: UNPUBLISH_ERROR,
+  payload: error,
+});
+
+
 export const saveDraftAction = (newStory, securityToken) => (dispatch => {
   saveDraft(newStory, securityToken).then(response => {
     console.log(response.data);
@@ -187,4 +219,18 @@ export const publishDraftAction = (draft, securityToken) => (dispatch => {
   publishDraft(draft, securityToken).then(response => {
     dispatch(publishDraftSuccess(response.data.result));
   }).catch(error => dispatch(publishDraftError(getErrorResponse(error))))
+});
+
+
+export const getPublishedAction = (postId, securityToken) => (dispatch => {
+  getPublished(postId, securityToken).then(response => {
+    dispatch(getPublishedSuccess(response.data.result));
+  }).catch(error => dispatch(getPublishedError(getErrorResponse(error))));
+});
+
+
+export const unpublishPostAction = (postId, securityToken) => (dispatch => {
+  unpublishPost(postId, securityToken).then(response => {
+    dispatch(unpublishPostSuccess(response.data.result));
+  }).catch(error => dispatch(unpublishPostError(getErrorResponse(error))));
 });

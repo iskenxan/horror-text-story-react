@@ -1,15 +1,18 @@
 import axios from 'axios';
 
-const apiBaseUrl = 'http://localhost:3001';
+const apiBaseUrl = 'https://spookies-server.herokuapp.com';
 
-const loginUrl = `${apiBaseUrl}/user/login`;
-const logoutUrl = `${apiBaseUrl}/user/logout`;
-const signUpUrl = `${apiBaseUrl}/user/signup`;
+const loginUrl = `${apiBaseUrl}/user/auth/login`;
+const logoutUrl = `${apiBaseUrl}/user/auth/logout`;
+const signUpUrl = `${apiBaseUrl}/user/auth/signup`;
 const saveDraftUrl = `${apiBaseUrl}/user/posts/draft/save`;
 const getDraftUrl = `${apiBaseUrl}/user/posts/draft/get`;
 const updateDraftUrl = `${apiBaseUrl}/user/posts/draft/update`;
 const deleteDraftUrl = `${apiBaseUrl}/user/posts/draft/delete`;
 const publishDraftUrl = `${apiBaseUrl}/user/posts/draft/publish`;
+const getPublishedUrl = `${apiBaseUrl}/user/posts/published/get`;
+const unpublishDraftUrl = `${apiBaseUrl}/user/posts/published/unpublish`;
+const saveProfileImageUrl =`${apiBaseUrl}/user/profile/profile-image/save`;
 
 
 export const logout = (token) => {
@@ -64,7 +67,7 @@ export const deleteDraft = (id, token) => {
   return axios.post(deleteDraftUrl, {
     id,
     token
-  })
+  });
 };
 
 
@@ -72,7 +75,31 @@ export const publishDraft = (draft, token) => {
   return axios.post(publishDraftUrl, {
     draft,
     token
-  })
+  });
+};
+
+
+export const getPublished = (id, token) => {
+  return axios.post(getPublishedUrl, {
+    id,
+    token
+  });
+};
+
+
+export const unpublishPost = (id, token) => {
+  return axios.post(unpublishDraftUrl, {
+    id,
+    token
+  });
+};
+
+
+export const saveProfileImage = (base64, token) => {
+  return axios.post(saveProfileImageUrl, {
+    token,
+    base64
+  });
 };
 
 

@@ -16,6 +16,7 @@ import Published from './components/published-item';
 import {
   getDraftAction
 } from "../../actions/user/new-post";
+import { saveProfileImageAction } from "../../actions/user/profile-image";
 
 
 const styles = {
@@ -53,17 +54,20 @@ class MyProfile extends Component {
     super(props);
     let snackBarOpen = false;
     let snackBarMessage = '';
+    this.uploadRef = null;
     this.state = {
       tabsValue: 0,
       snackBarOpen,
-      snackBarMessage
+      snackBarMessage,
+      profileImageFile: null,
+      profileImageFileSrc: null,
     }
   }
 
 
   componentWillMount() {
     if (this.props.location.state && this.props.location.state.message) {
-      this.setState({ snackBarOpen: true, snackBarMessage: this.props.location.state.message })
+      this.setState({ snackBarOpen: true, snackBarMessage: this.props.location.state.message });
       this.props.history.replace({
         pathname: this.props.location.pathname,
         state: {}
@@ -83,7 +87,7 @@ class MyProfile extends Component {
 
 
   onViewPublished = (id) => {
-    console.log(id);
+    this.props.history.push(`/view-story/${id}`);
   };
 
 
@@ -95,7 +99,7 @@ class MyProfile extends Component {
           { _.map(published, (value, key) =>
             <Published
               key={key}
-              onView={() => this.onViewPublished(key)}
+              onView={this.onViewPublished}
               id={key}
               title={value.title}/>
           )
@@ -133,12 +137,30 @@ class MyProfile extends Component {
   };
 
 
+  onProfileImageClicked = () => {
+    this.uploadRef.click();
+  };
+
+
+  handleSelectedFile = event => {
+    const { token } = this.props.user;
+    const selectedFile = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result;
+      saveProfileImageAction(base64, token);
+      this.setState({ profileImageFileSrc: base64, profileImageFile: selectedFile })
+    };
+  };
+
+
   render() {
-    const { fullWidth, paper, hr, tabContainer } = this.props.classes;
-    const { username, publishedRefs, followers, following } = this.props.user.user;
-    const { tabsValue, snackBarOpen, snackBarMessage } = this.state;
+    const { paper, hr, tabContainer } = this.props.classes;
+    const { username, followers, following, profileImage } = this.props.user.user;
+    const { published } = this.props.user.stories;
+    const { tabsValue, snackBarOpen, snackBarMessage, profileImageFileSrc } = this.state;
     return (
-      <div className={fullWidth}>
+      <div>
         <Navbar
           title='My Profile'/>
         <Grid container
@@ -147,10 +169,12 @@ class MyProfile extends Component {
             <Paper  className={paper}>
               <TopUserInfo
                 username={username}
-                posts={publishedRefs ? Object.keys(publishedRefs).length : 0}
+                posts={published ? Object.keys(published).length : 0}
                 followers={followers ? Object.keys(followers).length : 0 }
                 following={following ? Object.keys(following).length : 0}
                 classes={this.props.classes}
+                imageFile={ profileImageFileSrc || profileImage }
+                onImageClicked={this.onProfileImageClicked}
               />
               <hr className={hr}/>
               <Grid item xs>
@@ -175,6 +199,12 @@ class MyProfile extends Component {
             </Paper>
           </Grid>
         </Grid>
+        <input
+          type="file"
+          style={{display: 'none'}}
+          onChange={this.handleSelectedFile}
+          ref={(element) => this.uploadRef = element}
+        />
           <SnackBar
             open={snackBarOpen}
             message={snackBarMessage}

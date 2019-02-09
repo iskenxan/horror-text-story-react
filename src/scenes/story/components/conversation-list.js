@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import { MessageList, Message, MessageText, MessageGroup, Bubble } from '@livechat/ui-kit'
+import timestamp from 'time-stamp';
 
 const rootListStyle = {
   maxHeight: 300,
@@ -11,13 +12,23 @@ const rootListStyle = {
 
 const renderMessages = (dialog, characters) => {
   if (characters && !_.isEmpty(characters)) {
-    return _.map(dialog, (value, key) => {
+    let dialogArray = Object.values(dialog)
+    dialogArray = _.orderBy(dialogArray, 'timestamp')
+    console.log(dialogArray)
+    return dialogArray.map(message => {
+      let name = message.name
+      if (name === 'Other') {
+        const otherChars = Object.keys(characters).filter(key => key !== 'User')
+        name = otherChars[0]
+      }
+      const character = characters[name]
+      const isMain = character && (character.isMain === 'true' || character.isMain === true)
       return (
-        <MessageGroup key={key}>
-          <Message  isOwn={characters[value.name].isMain} key={key} authorName={value.name}>
-            <Bubble isOwn={characters[value.name].isMain} style={{ backgroundColor: characters[value.name].color, color: '#fff'}}>
+        <MessageGroup key={message.timestamp}>
+          <Message  isOwn={isMain} key={message.timestamp} authorName={name}>
+            <Bubble isOwn={isMain} style={{ backgroundColor: character.color || '#bdbdbd', color: (isMain && '#fff') || '#000'}}>
               <MessageText>
-                {value.text}
+                {message.text}
               </MessageText>
             </Bubble>
           </Message>

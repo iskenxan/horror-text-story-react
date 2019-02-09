@@ -3,11 +3,13 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
+import PaperContainer from '../components/paper-container';
 import TextField from '@material-ui/core/TextField';
 import SnackBar from '@material-ui/core/Snackbar';
 import TopButtons from './components/top-buttons';
 import AddCharacter from './components/add-character';
+import uuidv1 from 'uuid'
+
 import {
   addCharacterAction,
   removeCharacterAction,
@@ -19,16 +21,16 @@ import {
   updateDraftAction,
   deleteDraftAction,
   publishDraftAction
-} from "../../actions/user/new-post";
+} from "../../../actions/user/new-post";
 import {
   SAVE_DRAFT_SUCCESS,
   UPDATE_DRAFT_SUCCESS,
   DELETE_DRAFT_SUCCESS,
   PUBLISH_DRAFT_SUCCESS
-} from "../../actions/user/new-post";
-import { resetRequestStateAction } from "../../actions/request-status-actions";
+} from "../../../actions/user/new-post";
+import { resetRequestStateAction } from "../../../actions/request-status-actions";
 import CharacterList from './components/character-list';
-import ConversationList from './components/conversation-list';
+import ConversationList from '../components/conversation-list';
 import ConversationInput from './components/conversation-input';
 import { Redirect } from 'react-router-dom';
 
@@ -43,13 +45,6 @@ const styles = {
   },
   topButton: {
     marginRight: 10
-  },
-  paper: {
-    marginTop: 30,
-    marginBottom: 50,
-    paddingBottom: 50,
-    paddingLeft: 30,
-    paddingRight: 30
   },
   conversationContainer: {
     marginTop:40
@@ -121,10 +116,12 @@ class AddStory extends Component {
 
   onNewMessage = (name, text) => {
     const { dialogCount } = this.props.story;
+    const id = uuidv1()
     this.props.addDialogMessageAction({
-      id: dialogCount,
+      id,
       name,
-      text
+      text,
+      timestamp: new Date().getTime()
     })
   };
 
@@ -158,13 +155,15 @@ class AddStory extends Component {
     publishDraftAction({ ...story, title: this.state.title }, token);
   };
 
+
   onCloseSnackbar = () => {
     this.setState({ snackBarOpen: false });
     this.props.resetRequestStateAction();
   };
 
+
   render() {
-    const { root, paper, conversationContainer } = this.props.classes;
+    const { root, conversationContainer } = this.props.classes;
     const { redirected, redirectMessage, title } = this.state;
 
     const { characters, dialog, id } = this.props.story;
@@ -190,7 +189,7 @@ class AddStory extends Component {
               onSaveDraft={this.saveDraft}
               showDelete={id}
               onDelete={this.onDeleteDraft}/>
-            <Paper className={paper}>
+            <PaperContainer>
               <TextField
                 label="Title"
                 fullWidth
@@ -214,7 +213,7 @@ class AddStory extends Component {
                   onMessageAdded={this.onNewMessage}
                   />
               </Grid>
-            </Paper>
+            </PaperContainer>
           </Grid>
         </Grid>
         <SnackBar

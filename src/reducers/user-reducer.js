@@ -18,7 +18,12 @@ import {
   GET_DRAFT_SUCCESS,
   UPDATE_DRAFT_SUCCESS, DELETE_DRAFT_SUCCESS,
   PUBLISH_DRAFT_SUCCESS,
+  GET_PUBLISHED_SUCCESS,
+  UNPUBLISH_SUCCESS,
 } from "../actions/user/new-post";
+import {
+  SAVE_PROFILE_IMAGE_SUCCESS
+} from "../actions/user/profile-image";
 
 const emptyStory = {
   characters: {},
@@ -66,9 +71,9 @@ const UserReducer = (state = { ...initialState }, action) => {
       return { ...state, newStory: { ...state.newStory, characters: newCharactersObj } };
     }
     case ADD_DIALOG: {
-      const { id, name, text } = action.payload;
+      const { id, name, text, timestamp } = action.payload;
       const newStoryObj = _.cloneDeep(state.newStory);
-      newStoryObj.dialog[id] = { name, text };
+      newStoryObj.dialog[id] = { name, text, timestamp };
       newStoryObj.dialogCount ++;
       return { ...state, newStory: { ...newStoryObj } };
     }
@@ -83,10 +88,11 @@ const UserReducer = (state = { ...initialState }, action) => {
     case UPDATE_DRAFT_SUCCESS:
     case SAVE_DRAFT_SUCCESS: {
       const storiesClone = _.cloneDeep(state.stories);
-      const { newStory } = state;
-      storiesClone.drafts[action.payload] = { title: newStory.title } ;
+      const {id: draftId } = action.payload;
+      storiesClone.drafts[draftId] = action.payload
       return { ...state, stories: { ...storiesClone }, newStory: { ...emptyStory } };
     }
+    case GET_PUBLISHED_SUCCESS:
     case GET_DRAFT_SUCCESS: {
      return { ...state, newStory: action.payload };
     }
@@ -101,7 +107,20 @@ const UserReducer = (state = { ...initialState }, action) => {
       const { published, oldDraft } = action.payload;
       storiesClone.published[published] = { title: newStory.title };
       delete storiesClone.drafts[oldDraft];
-      return { ...state, stories: { ... storiesClone }, newStory: { ... emptyStory }}
+      return { ...state, stories: { ... storiesClone }, newStory: { ...emptyStory }}
+    }
+    case UNPUBLISH_SUCCESS : {
+      const postId = action.payload;
+      const storiesClone = _.cloneDeep(state.stories);
+      const storyRef = { ... storiesClone.published[postId] };
+      delete storiesClone.published[postId];
+      storiesClone.drafts[postId] = { ...storyRef };
+      return { ...state, stories: { ...storiesClone }, newStory: { ...emptyStory }}
+    }
+    case SAVE_PROFILE_IMAGE_SUCCESS: {
+      const stateClone = _.cloneDeep(state);
+      stateClone.user.user.profileImage = action.payload;
+      return { ...stateClone };
     }
     default:
       return state;
